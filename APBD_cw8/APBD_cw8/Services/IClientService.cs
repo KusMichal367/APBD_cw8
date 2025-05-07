@@ -4,4 +4,5 @@ namespace APBD_cw8.Services;
 public interface IClientService
 {
     Task<IEnumerable<Client_Trip>> GetTripsForClient(int clientId);
+    Task<int> CreateClient(CreateClient client);
 }

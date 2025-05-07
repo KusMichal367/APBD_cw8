@@ -72,4 +72,44 @@ where clienttrip.IdClient = @ClientId;";
             throw new ApplicationException("Błąd "+ex);
         }
     }
+
+    public async Task<int> CreateClient(CreateClient client)
+    {
+        string query = @"INSERT INTO Client (FirstName, LastName, Email, Telephone, Pesel)
+            VALUES (@FirstName, @LastName, @Email, @Telephone, @Pesel);
+            SELECT CAST(SCOPE_IDENTITY() AS int);";
+
+        SqlConnection connection = new SqlConnection(connectionString);
+        SqlCommand command = new SqlCommand(query, connection);
+
+        command.Parameters.Add(new SqlParameter("@FirstName", SqlDbType.NVarChar, 50) { Value = client.FirstName });
+        command.Parameters.Add(new SqlParameter("@LastName", SqlDbType.NVarChar, 50) { Value = client.LastName });
+        command.Parameters.Add(new SqlParameter("@Email", SqlDbType.NVarChar, 100) { Value = client.Email });
+        command.Parameters.Add(new SqlParameter("@Telephone", SqlDbType.NVarChar, 15) { Value = client.Telephone});
+        command.Parameters.Add(new SqlParameter("@PESEL", SqlDbType.NVarChar, 11) { Value = client.PESEL });
+
+        await connection.OpenAsync();
+        try
+        {
+            var result = await command.ExecuteScalarAsync();
+
+            if (result == null || result == DBNull.Value)
+            {
+                throw new ApplicationException("Nie udało się pobrać nowego ID klienta");
+            }
+
+            if (result is int id)
+            {
+                return id;
+            }
+
+            int converted = Convert.ToInt32(result);
+            return converted;
+
+        }
+        catch (SqlException ex)
+        {
+            throw new ApplicationException("Błąd przy tworzeniu klienta: " + ex);
+        }
+    }
 }
