@@ -112,4 +112,88 @@ where clienttrip.IdClient = @ClientId;";
             throw new ApplicationException("Błąd przy tworzeniu klienta: " + ex);
         }
     }
+
+    public async Task RegisterClientToTrip(int clientId, int tripId)
+    {
+        string findClient = @"Select count(1) from Client where IdClient = @ClientId;";
+
+        string findTrip = @"Select MaxPeople from Trip where IdTrip = @TripId;";
+
+        string countParticipants = @"Select count(1) from Client_trip where IdTrip = @TripId;";
+
+        string checkAlreadyParticipant = @"Select count(1) from Client_trip where IdTrip = @TripId and IdClient = @ClientId;";
+
+        string insertQuery =
+            @"INSERT INTO Client_Trip (IdClient, IdTrip, RegisteredAt) VALUES (@ClientId, @TripId, @RegisteredAt);";
+
+        using SqlConnection connection = new SqlConnection(connectionString);
+        await connection.OpenAsync();
+        using var transaction = connection.BeginTransaction();
+
+        try
+        {
+            using (SqlCommand findClientCommand = new SqlCommand(findClient, connection, transaction))
+            using (SqlCommand findTripCommand = new SqlCommand(findTrip, connection, transaction))
+            using (SqlCommand countParticipantsCommand = new SqlCommand(countParticipants, connection, transaction))
+            using (SqlCommand checkAlreadyParticipantCommand =
+                   new SqlCommand(checkAlreadyParticipant, connection, transaction))
+            using (SqlCommand insertCommand = new SqlCommand(insertQuery, connection, transaction))
+
+            {
+                findClientCommand.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int) { Value = clientId });
+                var found = (int)await findClientCommand.ExecuteScalarAsync();
+                if (found == 0)
+                {
+                    throw new KeyNotFoundException($"Client {clientId} not found");
+                }
+
+
+                findTripCommand.Parameters.Add(new SqlParameter("@TripId", SqlDbType.Int) { Value = tripId });
+                var result = await findTripCommand.ExecuteScalarAsync();
+
+                if (result == null || result == DBNull.Value)
+                {
+                    throw new KeyNotFoundException($"Trip {tripId} not found");
+                }
+
+                int maxPeople = Convert.ToInt32(result);
+
+                checkAlreadyParticipantCommand.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int)
+                    { Value = clientId });
+                checkAlreadyParticipantCommand.Parameters.Add(new SqlParameter("@TripId", SqlDbType.Int)
+                    { Value = tripId });
+
+                var alreadyParticipants = (int)await checkAlreadyParticipantCommand.ExecuteScalarAsync();
+                if (alreadyParticipants > 0)
+                {
+                    throw new InvalidOperationException($"Client {clientId} already registered at trip {tripId}");
+                }
+
+                countParticipantsCommand.Parameters.Add(new SqlParameter("@TripId", SqlDbType.Int) { Value = tripId });
+                int currentCount = (int)await countParticipantsCommand.ExecuteScalarAsync();
+                if (currentCount >= maxPeople)
+                {
+                    throw new InvalidOperationException($"Limit of trip {tripId} exceeded");
+                }
+
+                insertCommand.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int) { Value = clientId });
+                insertCommand.Parameters.Add(new SqlParameter("@TripId", SqlDbType.Int) { Value = tripId });
+
+                DateTime now = DateTime.Now;
+                int nowInt = now.Year * 10000 + now.Month * 100 + now.Day;
+
+                insertCommand.Parameters.Add(new SqlParameter("@RegisteredAt", SqlDbType.Int)
+                    { Value = nowInt });
+                await insertCommand.ExecuteNonQueryAsync();
+
+            }
+
+            transaction.Commit();
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
 }

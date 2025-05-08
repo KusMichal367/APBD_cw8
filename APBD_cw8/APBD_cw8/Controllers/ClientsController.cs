@@ -67,4 +67,30 @@ public class ClientsController: ControllerBase
             return StatusCode(500, new { message = "Błąd"+ex.Message });
         }
     }
+
+    [HttpPut("{clientId}/trips/{tripId}")]
+    public async Task<IActionResult> RegisterClientToTrip(int clientId, int tripId)
+    {
+        try
+        {
+            await _clientService.RegisterClientToTrip(clientId, tripId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException knfEx)
+        {
+            return NotFound(new { message = knfEx.Message });
+        }
+        catch (InvalidOperationException ioEx)
+        {
+            return Conflict(new { message = ioEx.Message });
+        }
+        catch (SqlException sqlEx)
+        {
+            return StatusCode(500, new { message = sqlEx.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
 }

@@ -5,4 +5,6 @@ public interface IClientService
 {
     Task<IEnumerable<Client_Trip>> GetTripsForClient(int clientId);
     Task<int> CreateClient(CreateClient client);
+
+    Task RegisterClientToTrip(int clientId, int tripId);
 }
