@@ -7,4 +7,5 @@ public interface IClientService
     Task<int> CreateClient(CreateClient client);
 
     Task RegisterClientToTrip(int clientId, int tripId);
+    Task DeleteClientFromTrip(int clientId, int tripId);
 }

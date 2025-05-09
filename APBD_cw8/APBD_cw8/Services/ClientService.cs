@@ -196,4 +196,39 @@ where clienttrip.IdClient = @ClientId;";
             throw;
         }
     }
+
+    public async Task DeleteClientFromTrip(int clientId, int tripId)
+    {
+        string checkClientOnTrip = @"SELECT count(1) from Client_Trip where IdClient=@clientId and IdTrip = @tripId;";
+        string deleteQuery = @"DELETE FROM Client_Trip WHERE IdClient = @ClientId AND IdTrip   = @TripId;";
+
+        using SqlConnection connection = new SqlConnection(connectionString);
+        await connection.OpenAsync();
+
+        try
+        {
+            using (SqlCommand checkClientOnTripCommand = new SqlCommand(checkClientOnTrip, connection))
+            using (SqlCommand deleteCommand = new SqlCommand(deleteQuery, connection))
+            {
+                checkClientOnTripCommand.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int)
+                    { Value = clientId });
+                checkClientOnTripCommand.Parameters.Add(new SqlParameter("@TripId", SqlDbType.Int) { Value = tripId });
+
+                int found = (int)await checkClientOnTripCommand.ExecuteScalarAsync();
+                if (found == 0)
+                {
+                    throw new KeyNotFoundException($"Client {clientId} not found on trip {tripId}");
+                }
+
+                deleteCommand.Parameters.Add(new SqlParameter("@ClientId", SqlDbType.Int) { Value = clientId });
+                deleteCommand.Parameters.Add(new SqlParameter("@TripId", SqlDbType.Int) { Value = tripId });
+
+                await deleteCommand.ExecuteNonQueryAsync();
+            }
+        }
+        catch (SqlException sqlEx)
+        {
+            throw new ApplicationException("Błąd "+sqlEx);
+        }
+    }
 }

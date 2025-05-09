@@ -93,4 +93,26 @@ public class ClientsController: ControllerBase
             return StatusCode(500, new { message = ex.Message });
         }
     }
+
+    [HttpDelete("{clientId}/trips/{tripId}")]
+    public async Task<IActionResult> DeleteClientFromTrip(int clientId, int tripId)
+    {
+        try
+        {
+            await _clientService.DeleteClientFromTrip(clientId, tripId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException knfEx)
+        {
+            return NotFound(new { message = knfEx.Message });
+        }
+        catch (SqlException sqlEx)
+        {
+            return StatusCode(500, new { message = sqlEx.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
+    }
 }
