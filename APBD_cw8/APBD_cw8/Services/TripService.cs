@@ -15,6 +15,8 @@ public class TripService : ITripService
     public async Task<IEnumerable<Trip>> GetTripsAsync()
     {
         var trips = new Dictionary<int, Trip>();
+
+        //pobieramy dane o wycieczce oraz kraje które obejmuje
         string query = @"Select
     trip.IdTrip,
     trip.Name,
@@ -80,6 +82,8 @@ join Country country on countrytrip.IdCountry = country.IdCountry";
     public async Task<List<Country_Trip>> GetCountryTripAsync()
     {
         var asociatedCountries = new List<Country_Trip>();
+
+        //pobieramy dane o wycieczkach i ich kierunkach
         string query = "SELECT IdCountry, IdTrip FROM Country_Trip";
         using (SqlConnection connection = new SqlConnection(connectionString))
         using (SqlCommand command = new SqlCommand(query, connection))
@@ -107,6 +111,8 @@ join Country country on countrytrip.IdCountry = country.IdCountry";
     public async Task<List<Country>> GetCountriesAsync()
     {
         var Countries = new List<Country>();
+
+        //poiberamy wszystkie kraje
         string query = "SELECT IdCountry, Name FROM Country";
         using (SqlConnection connection = new SqlConnection(connectionString))
         using (SqlCommand command = new SqlCommand(query, connection))
