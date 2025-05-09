@@ -15,6 +15,7 @@ namespace APBD_cw8.Controllers
             _tripService = tripService;
         }
 
+        //pobieranie dostępnych wycieczek
         [HttpGet]
         public async Task<IActionResult> GetTrips()
         {

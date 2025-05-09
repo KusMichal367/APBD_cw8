@@ -17,6 +17,7 @@ public class ClientsController: ControllerBase
         _clientService = clientService;
     }
 
+    //pobieranie wycieczek dla konkretnego klienta
     [HttpGet("{clientId}/trips")]
     public async Task<IActionResult> GetTripsForClient(int clientId)
     {
@@ -45,6 +46,8 @@ public class ClientsController: ControllerBase
         }
     }
 
+
+    //rejestrowanie nowego klienta
     [HttpPost]
     public async Task<IActionResult> CreateClient([FromBody] CreateClient client)
     {
@@ -68,6 +71,8 @@ public class ClientsController: ControllerBase
         }
     }
 
+
+    //zapisywanie klienta na konkretną wycieczkę
     [HttpPut("{clientId}/trips/{tripId}")]
     public async Task<IActionResult> RegisterClientToTrip(int clientId, int tripId)
     {
@@ -94,6 +99,7 @@ public class ClientsController: ControllerBase
         }
     }
 
+    //usuwanie klienta z wycieczki
     [HttpDelete("{clientId}/trips/{tripId}")]
     public async Task<IActionResult> DeleteClientFromTrip(int clientId, int tripId)
     {

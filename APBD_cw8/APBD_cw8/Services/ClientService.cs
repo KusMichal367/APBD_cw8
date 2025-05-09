@@ -15,7 +15,10 @@ public class ClientService : IClientService
 
     public async Task<IEnumerable<Client_Trip>> GetTripsForClient(int clientId)
     {
+        //sprawdzamy czy istnieje klient o podanym id
         string findClient = @"Select count(1) from Client where IdClient = @ClientId;";
+
+        //szukamy informacji o wycieczce i połączeniu z klientem dla podanych danych
         string query = @"Select
     trip.IdTrip,
     trip.Name,
@@ -75,6 +78,7 @@ where clienttrip.IdClient = @ClientId;";
 
     public async Task<int> CreateClient(CreateClient client)
     {
+        //wstawiamy dane do tabeli klienci jako wynik zwracany jest nowy numer id
         string query = @"INSERT INTO Client (FirstName, LastName, Email, Telephone, Pesel)
             VALUES (@FirstName, @LastName, @Email, @Telephone, @Pesel);
             SELECT CAST(SCOPE_IDENTITY() AS int);";
@@ -115,14 +119,19 @@ where clienttrip.IdClient = @ClientId;";
 
     public async Task RegisterClientToTrip(int clientId, int tripId)
     {
+        //sprawdzamy czy istnieje klient o podanym id
         string findClient = @"Select count(1) from Client where IdClient = @ClientId;";
 
+        //sprawdzamy czy istnieje wycieczka o podanym id
         string findTrip = @"Select MaxPeople from Trip where IdTrip = @TripId;";
 
+        //liczymy uczestników danej wycieczki
         string countParticipants = @"Select count(1) from Client_trip where IdTrip = @TripId;";
 
+        //sprawdzamy czy uczesnik nie jest już zapisany na daną wycieczkę
         string checkAlreadyParticipant = @"Select count(1) from Client_trip where IdTrip = @TripId and IdClient = @ClientId;";
 
+        //wstawiamy dane do tabeli
         string insertQuery =
             @"INSERT INTO Client_Trip (IdClient, IdTrip, RegisteredAt) VALUES (@ClientId, @TripId, @RegisteredAt);";
 
@@ -199,7 +208,10 @@ where clienttrip.IdClient = @ClientId;";
 
     public async Task DeleteClientFromTrip(int clientId, int tripId)
     {
+        //sprawdzamy czy klient jest już na danej wycieczce
         string checkClientOnTrip = @"SELECT count(1) from Client_Trip where IdClient=@clientId and IdTrip = @tripId;";
+
+        //usuwamy połączenie klienta z wycieczką
         string deleteQuery = @"DELETE FROM Client_Trip WHERE IdClient = @ClientId AND IdTrip   = @TripId;";
 
         using SqlConnection connection = new SqlConnection(connectionString);
